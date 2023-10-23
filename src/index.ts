@@ -5,7 +5,6 @@ interface Env {
 
 export default {
 	async fetch(request: Request, env: Env) {
-
 		// If the request is an OPTIONS request, return a 200 response with permissive CORS headers
 		// This is required for the Helius RPC Proxy to work from the browser and arbitrary origins
 		// If you wish to restrict the origins that can access your Helius RPC Proxy, you can do so by
@@ -22,9 +21,16 @@ export default {
 			const origin = request.headers.get('Origin')
 			if (origin && supportedDomains.includes(origin)) {
 				corsHeaders['Access-Control-Allow-Origin'] = origin
+			} else {
+				return new Response(null, {
+					status: 401
+				})
 			}
 		} else {
-			corsHeaders['Access-Control-Allow-Origin'] = '*'
+			// corsHeaders['Access-Control-Allow-Origin'] = '*'
+			return new Response(null, {
+				status: 401
+			})
 		}
 
 		if (request.method === "OPTIONS") {
@@ -40,7 +46,6 @@ export default {
 			return await fetch(`https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`, request)
 		}
 
-
 		const { pathname, search } = new URL(request.url)
 		const payload = await request.text();
 		const proxyRequest = new Request(`https://${pathname === '/' ? 'mainnet.helius-rpc.com' : 'api.helius.xyz'}${pathname}?api-key=${env.HELIUS_API_KEY}${search ? `&${search.slice(1)}` : ''}`, {
@@ -49,6 +54,7 @@ export default {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-Helius-Cloudflare-Proxy': 'true',
+				...corsHeaders, 
 			}
 		});
 
