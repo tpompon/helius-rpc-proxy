@@ -22,6 +22,7 @@ export default {
 			if (origin && supportedDomains.includes(origin)) {
 				corsHeaders['Access-Control-Allow-Origin'] = origin
 			} else {
+				console.log('Denied', request.headers.get('Origin'))
 				return new Response(null, {
 					status: 401
 				})
